@@ -82,7 +82,7 @@ exports.addMonoId = async (req, res, next) => {
         const user = await User.create(data);
         res.status(200).json({
             status: 'success',
-            user,
+            data: user,
         });
     } catch (error){
         console.error(error);
