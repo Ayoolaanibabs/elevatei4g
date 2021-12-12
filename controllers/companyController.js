@@ -98,7 +98,7 @@ exports.getAllUsers = async (req, res, next) => {
         if(!response.length) return next(new AppError("company has no users", 404));
         res.status(200).json({
             status: 'success',
-            response,
+            data: response,
         });
     } catch (error) {
         console.error(error);
