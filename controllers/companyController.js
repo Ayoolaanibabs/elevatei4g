@@ -37,7 +37,7 @@ exports.login = async (req, res, next) => {
         email = email.toLowerCase();
         const company = await Company.findOne({ email }).select('+password');
         if (!company) return next(new AppError('invalid credentials', 400));
-        const passwordCorrect = bcrypt.compareSync(password, user.password);
+        const passwordCorrect = bcrypt.compareSync(password, company.password);
         if (!passwordCorrect) return next(new AppError('invalid credentials', 400));
         let signature = {
             id: company._id,
@@ -47,7 +47,7 @@ exports.login = async (req, res, next) => {
 
         res.status(200).json({
             status: 'success',
-            user: user._id,
+            user: company._id,
             token
         })
     } catch (error) {
