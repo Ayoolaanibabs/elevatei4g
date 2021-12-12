@@ -98,7 +98,7 @@ exports.getIncome = async (req, res)=> {
                 "Content-Type": "application/json",
             }
         })
-        const data = response.data.amount;
+        const data = response.data;
         res.status(200).json({
             status: 'success',
             data,
