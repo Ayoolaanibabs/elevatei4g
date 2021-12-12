@@ -1,18 +1,17 @@
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
-    companyName: {
-        type: String,
+    companyId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "company",
         required: true
+    },
+    fullName: {
+        type: String,
     },
     email: {
         type: String,
-        required: true,
         unique: true
-    },
-    password: {
-        type: String,
-        select: false
     },
     phone: {
         type: String,
@@ -21,8 +20,22 @@ const userSchema = new mongoose.Schema({
 
     address: {
         type: String,
-        required: true
     },
+    gender: {
+        type: String,
+    },
+    monoId: {
+		type: String,
+		default: ''
+	},
+	monoCode: {
+		type: String,
+		default: ''
+	},
+	monoStatus: {
+		type: Boolean,
+		default: false
+	},
 }, {
     timestamps: true
 })

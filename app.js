@@ -5,6 +5,7 @@ const morgan = require('morgan');
 const AppError = require('./config/appError');
 const errorHandler = require('./config/errorController');
 const authRouter = require('./routes/authRoutes');
+const companyRouter = require('./routes/companyRoutes');
 const userRouter = require('./routes/userRoutes');
 
 app.use(cors());
@@ -16,6 +17,7 @@ app.use(express.json({limit: '5mb'}));
 app.use(express.urlencoded({limit: '5mb', extended: true}));
 
 app.use('/api/v1/auth', authRouter);
+app.use('/api/v1/company', companyRouter);
 app.use('/api/v1/user', userRouter);
 
 

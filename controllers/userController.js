@@ -1,56 +1,109 @@
-require('dotenv').config();
-
-const AppError = require('../config/appError');
+const axios= require("axios");
 const User = require('../models/user');
-const bcrypt = require('bcryptjs');
-const _ = require('underscore');
-const auth = require('./authController');
 
-exports.signup = async(req, res, next) => {
+exports.getUserInfo = async (req, res) => {
     try {
-        let request = ['email', 'companyName', 'phone', 'address', 'password'];
-        request.map(item => {
-            if(!req.body[item]) return next(new AppError(`${item} is required`, 400));
+        const { id } = req.params
+        const url = `https://api.withmono.com/accounts/${id}/identity`
+        const response = await axios.request({
+            url,
+            method: 'GET',
+            headers: {
+                Accept: "application/json",
+                "mono-sec-key": process.env.MONO_SECRET_KEY,
+                "Content-Type": "application/json",
+            }
         })
-        let data = _.pick(req.body, request);
-        data.email = data.email.toLowerCase();
+        const data = response.data
+        const update = {
+            $set: {
+                fullName: data.fullName,
+                email: data.email,
+                phone: data.phone,
+                address: data.addressLine1,
+                gender: data.gender
+            }
+        }
         const emailExists = await User.findOne({email: data.email});
-        if(emailExists) return next(new AppError('You already have an account', 409));
-        let hash = bcrypt.hashSync(data.password);
-        data.password = hash;
-        const user = await User.create(data);
+        if(!emailExists) {
+            const userExists = await User.findOne({monoID: id});
+            if (!userExists) return next(new AppError("user not found", 404));
+            User.updateOne({monoId: id}, update, {new: true}, function(err, res) {});
+        }
         res.status(200).json({
             status: 'success',
-            data: user
-        })
-    } catch (error) {
-        return next(error);
+            data,
+        });
+    } catch (error){
+        console.error(error);
     }
 };
 
-exports.login = async (req, res, next) => {
+exports.getTransactions = async (req, res)=> {
     try {
-        let { email, password } = req.body;
-        if (!email || !password) return next(new AppError('email and password required', 400));
-        email = email.toLowerCase();
-        const user = await User.findOne({ email }).select('+password');
-        if (!user) return next(new AppError('invalid credentials', 400));
-        const passwordCorrect = bcrypt.compareSync(password, user.password);
-        if (!passwordCorrect) return next(new AppError('invalid credentials', 400));
-        let signature = {
-            id: user._id,
-            email: user.email,
-            role: user.role
-        }
-        const token = auth.createAccessToken(signature);
-        user.password = undefined;
-
+        const { id } = req.params
+        const url = `https://api.withmono.com/accounts/${id}/transactions`
+        const response = await axios.request({
+            url,
+            method: 'GET',
+            headers: {
+                Accept: "application/json",
+                "mono-sec-key": process.env.MONO_SECRET_KEY,
+                "Content-Type": "application/json",
+            }
+        })
+        const data = response.data
         res.status(200).json({
             status: 'success',
-            user: user._id,
-            token
+            data,
+        });
+    } catch (error){
+        console.error(error);
+    }
+};
+
+exports.getBalance = async (req, res)=> {
+    try {
+        const { id } = req.params
+        const url = `https://api.withmono.com/accounts/${id}`
+        const response = await axios.request({
+            url,
+            method: 'GET',
+            headers: {
+                Accept: "application/json",
+                "mono-sec-key": process.env.MONO_SECRET_KEY,
+                "Content-Type": "application/json",
+            }
         })
-    } catch (error) {
-        return next(error);
+        const data = response.data.account.balance
+        res.status(200).json({
+            status: 'success',
+            data,
+        });
+    } catch (error){
+        console.error(error);
+    }
+};
+
+exports.getIncome = async (req, res)=> {
+    try {
+        const { id } = req.params
+        const url = `https://api.withmono.com/accounts/${id}/income`
+        const response = await axios.request({
+            url,
+            method: 'GET',
+            headers: {
+                Accept: "application/json",
+                "mono-sec-key": process.env.MONO_SECRET_KEY,
+                "Content-Type": "application/json",
+            }
+        })
+        const data = response.data.amount;
+        res.status(200).json({
+            status: 'success',
+            data,
+        });
+    } catch (error){
+        console.error(error);
     }
 };
